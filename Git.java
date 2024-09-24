@@ -1,11 +1,10 @@
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 
 public class Git {
     public static void main (String [] args) throws IOException {
@@ -20,13 +19,13 @@ public class Git {
         BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
         bw.write ("sodvunaoernoienv");
         bw.close();
-        Blob blob = new Blob ("newFile.txt");
+        Blob blob = new Blob ("newFile.txt", false);
         File newFile2 = new File ("newFile2.txt");
         newFile.createNewFile();
         BufferedWriter bw2 = new BufferedWriter(new FileWriter(newFile2));
         bw2.write ("sodvunaoernoien");
         bw2.close();
-        Blob blob2 = new Blob ("newFile2.txt");
+        Blob blob2 = new Blob ("newFile2.txt", false);
 
         //verifies that the location of a blob is correct (git/objects)
         String blobName = blob.getBlobName();

@@ -1,25 +1,25 @@
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPOutputStream;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.FileWriter;
-import java.nio.charset.StandardCharsets;
 
 
 public class Blob {
     private String blobName;
     private static boolean compressionAuthorization = false;
 
-    public Blob (String fileName) throws IOException{
+    public Blob (String fileName, boolean compressionAuthorization) throws IOException{
+        Blob.compressionAuthorization = compressionAuthorization;
         if (!Files.exists(Paths.get("git/objects")))
             throw new FileNotFoundException("no git or objects directories");
         if (!Files.exists(Paths.get(fileName)))
