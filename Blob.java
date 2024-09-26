@@ -79,7 +79,7 @@ public class Blob {
                     BufferedWriter bw = new BufferedWriter(new FileWriter(objectFile));
                     bw.write(fileContents);
                     bw.close();
-                    treeContent.append("blob ").append(createdHash).append(" ").append(ogFile.getName() + "/" + file.getName()).append("\n");
+                    treeContent.append("blob ").append(createdHash).append(" ").append(file.getPath().replace("/Users/avivpilipski/Desktop/12/HTCS_Projects/git-project-AVIV", "")).append("\n");
                 } else if (file.isDirectory()) {
                     // Recursively create a tree for each subdirectory
                     String [] dirContents = file.list();
@@ -92,9 +92,9 @@ public class Blob {
                     try (BufferedWriter tempBR = new BufferedWriter(new FileWriter(objectFile))) {
                         tempBR.write(toHash);
                     }
-                    Blob subTree = new Blob(fileName + "/" + file.getAbsolutePath(), compressionAuthorization);
+                    Blob subTree = new Blob(file.getAbsolutePath(), compressionAuthorization);
                     String treeSHA1 = subTree.getBlobName(); // Get the tree's SHA1
-                    treeContent.append("tree ").append(treeSHA1).append(" ").append(file.getName()).append("\n");
+                    treeContent.append("tree ").append(treeSHA1).append(" ").append(file.getPath().replace("/Users/avivpilipski/Desktop/12/HTCS_Projects/git-project-AVIV", "")).append("\n");
                 }
             }
     
