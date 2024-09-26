@@ -16,6 +16,7 @@ import java.util.zip.GZIPOutputStream;
 
 public class Blob {
     private String blobName;
+    private boolean isBlob, isTree;
     private static boolean compressionAuthorization = false;
 
     public Blob (String fileName, boolean compressionAuthorization) throws IOException{
@@ -46,7 +47,14 @@ public class Blob {
         bw.close();
 
         //storing original fileName and SHA1 of file into the index File
-        String str = backupFile.getName() + " " + ogFile.getName() + "\n";
+        String str = "";
+
+        if (isBlob) {
+            str = "blob" + " " + backupFile.getName() + " " + ogFile.getAbsolutePath() + ogFile.getName() + "\n";
+        }
+        else {
+            str = "tree" + " " + backupFile.getName() + " " + ogFile.getAbsolutePath() + ogFile.getName() + "\n";
+        }
         BufferedWriter bw2 = new BufferedWriter(new FileWriter("git/index", true));
         bw2.append (str);
         bw2.close();

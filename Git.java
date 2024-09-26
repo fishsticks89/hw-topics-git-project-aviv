@@ -17,7 +17,7 @@ public class Git {
         File newFile = new File ("newFile.txt");
         newFile.createNewFile();
         BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
-        bw.write ("sodvunaoernoienv");
+        bw.write ("sfodvunaoernoienv");
         bw.close();
         Blob blob = new Blob ("newFile.txt", false);
         File newFile2 = new File ("newFile2.txt");
@@ -57,24 +57,6 @@ public class Git {
         String indexContents = blob.readFileAsString(new File ("git/index"));
         if (indexContents.equals(blobName+" newFile.txt" + "\n" + blob2.getBlobName()+" newFile2.txt" + "\n")){
             System.out.println ("index was updated correctly");
-        }
-
-        //deletes the blobs and original files
-        b.delete();
-        File b2 = new File ("git/objects/"+blob2.getBlobName());
-        b2.delete();
-        newFile.delete();
-        newFile2.delete();
-        if (!b.exists()&&!b2.exists()&&!newFile.exists()&&!newFile2.exists()){
-            System.out.println ("succesfully deleted blobs and original files.");
-        }
-
-        //deletes the contents of index
-        File index = new File ("git/index");
-        index.delete();
-        index.createNewFile();
-        if (index.length()==0){
-            System.out.println ("succesfully deleted the contents of index.");
         }
     }
 
