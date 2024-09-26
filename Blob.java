@@ -48,22 +48,24 @@ public class Blob {
                     System.err.println("Compression failed, proceeding with uncompressed data.");
                 }
             }
-            // Create a SHA1 hash and save the file in the objects directory
-            File backupFile = new File("git/objects", newFileName(fileContents));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(backupFile));
-            bw.write(fileContents);
-            bw.close();
             
+            // Create a SHA1 hash and save the file in the objects directory
+            String blobSHA1 = newFileName(fileContents); // Get SHA1 based on file content
+            File backupFile = new File("git/objects", blobSHA1);
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(backupFile))) {
+                bw.write(fileContents);
+            }
+    
             // Store original fileName and SHA1 in the index file
             String str = "blob " + backupFile.getName() + " " + ogFile.getName() + "\n";
-            BufferedWriter bw2 = new BufferedWriter(new FileWriter("git/index", true));
-            bw2.append(str);
-            bw2.close();
-            
-            blobName = backupFile.getName();
+            try (BufferedWriter bw2 = new BufferedWriter(new FileWriter("git/index", true))) {
+                bw2.append(str);
+            }
+    
+            blobName = backupFile.getName(); // Set the blobName to the SHA1 of the blob
+    
         } else if (ogFile.isDirectory()) {
             isTree = true;
-            // Process the directory as a tree
             StringBuilder treeContent = new StringBuilder();
     
             // Iterate over the contents of the directory
@@ -71,33 +73,35 @@ public class Blob {
                 if (file.isFile()) {
                     // Create a blob for each file
                     Blob blob = new Blob(file.getAbsolutePath(), compressionAuthorization);
-                    String blobName = blob.getBlobName();
-                    treeContent.append("blob ").append(blobName).append(" ").append(ogFile.getName() + "/" + file.getName()).append("\n");
+                    String blobSHA1 = blob.getBlobName();
+                    treeContent.append("blob ").append(blobSHA1).append(" ").append(ogFile.getName() + "/" + file.getName()).append("\n");
                 } else if (file.isDirectory()) {
                     // Recursively create a tree for each subdirectory
                     Blob subTree = new Blob(file.getAbsolutePath(), compressionAuthorization);
-                    String treeName = subTree.getBlobName(); // Assume this returns the tree's SHA1
-                    treeContent.append("tree ").append(treeName).append(" ").append(file.getName()).append("\n");
+                    String treeSHA1 = subTree.getBlobName(); // Get the tree's SHA1
+                    treeContent.append("tree ").append(treeSHA1).append(" ").append(file.getName()).append("\n");
                 }
             }
     
             // Save the tree content to a file
             String treeSHA1 = encryptThisString(treeContent.toString());
             File treeFile = new File("git/objects", treeSHA1);
-            BufferedWriter treeWriter = new BufferedWriter(new FileWriter(treeFile));
-            treeWriter.write(treeContent.toString());
-            treeWriter.close();
+            try (BufferedWriter treeWriter = new BufferedWriter(new FileWriter(treeFile))) {
+                treeWriter.write(treeContent.toString());
+            }
     
             // Add the tree to the index
-            BufferedWriter indexWriter = new BufferedWriter(new FileWriter("git/index", true));
-            indexWriter.append(treeContent);
-            indexWriter.close();
-            
-            blobName = treeSHA1; // Use the tree's SHA1 as the blob name
+            try (BufferedWriter indexWriter = new BufferedWriter(new FileWriter("git/index", true))) {
+                indexWriter.append(treeContent);
+            }
+    
+            blobName = treeSHA1; // Set the blobName to the SHA1 of the tree
+    
         } else {
             throw new IOException("The specified path is neither a file nor a directory: " + fileName);
         }
     }
+    
     
 
     public String getBlobName(){
