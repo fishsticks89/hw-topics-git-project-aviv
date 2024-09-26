@@ -92,7 +92,7 @@ public class Blob {
                     try (BufferedWriter tempBR = new BufferedWriter(new FileWriter(objectFile))) {
                         tempBR.write(toHash);
                     }
-                    Blob subTree = new Blob(file.getAbsolutePath(), compressionAuthorization);
+                    Blob subTree = new Blob(fileName + "/" + file.getAbsolutePath(), compressionAuthorization);
                     String treeSHA1 = subTree.getBlobName(); // Get the tree's SHA1
                     treeContent.append("tree ").append(treeSHA1).append(" ").append(file.getName()).append("\n");
                 }
