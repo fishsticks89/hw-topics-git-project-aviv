@@ -16,51 +16,89 @@ import java.util.zip.GZIPOutputStream;
 
 public class Blob {
     private String blobName;
-    private boolean isBlob, isTree;
+    private boolean isBlob;
+    private boolean isTree;
     private static boolean compressionAuthorization = false;
 
-    public Blob (String fileName, boolean compressionAuthorization) throws IOException{
+    public Blob(String fileName, boolean compressionAuthorization) throws IOException {
         Blob.compressionAuthorization = compressionAuthorization;
-        if (!Files.exists(Paths.get("git/objects")))
-            throw new FileNotFoundException("no git or objects directories");
-        if (!Files.exists(Paths.get(fileName)))
-            throw new FileNotFoundException("file does not exist");
-
-        File ogFile = new File (fileName);
-
-        //compressing the data if toggled on
-        String fileContents = readFileAsString(ogFile);
-        if (compressionAuthorization == true){
-            try {
-                String str = new String(compress(fileContents), StandardCharsets.UTF_8);
-                fileContents = str;
-            } catch (IOException e) {
-                System.err.println("Compression failed, proceeding with uncompressed data.");
+    
+        // Check if the git/objects directory exists
+        if (!Files.exists(Paths.get("git/objects"))) {
+            throw new FileNotFoundException("No git or objects directories");
+        }
+    
+        File ogFile = new File(fileName);
+    
+        // Check if the file exists
+        if (!ogFile.exists()) {
+            throw new FileNotFoundException("File does not exist: " + fileName);
+        }
+    
+        // Determine if the input is a file or a directory
+        if (ogFile.isFile()) {
+            isBlob = true;
+            // Process the file as a blob...
+            String fileContents = readFileAsString(ogFile);
+            if (compressionAuthorization) {
+                try {
+                    String str = new String(compress(fileContents), StandardCharsets.UTF_8);
+                    fileContents = str;
+                } catch (IOException e) {
+                    System.err.println("Compression failed, proceeding with uncompressed data.");
+                }
             }
+            // Create a SHA1 hash and save the file in the objects directory
+            File backupFile = new File("git/objects", newFileName(fileContents));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(backupFile));
+            bw.write(fileContents);
+            bw.close();
+            
+            // Store original fileName and SHA1 in the index file
+            String str = "blob " + backupFile.getName() + " " + ogFile.getName() + "\n";
+            BufferedWriter bw2 = new BufferedWriter(new FileWriter("git/index", true));
+            bw2.append(str);
+            bw2.close();
+            
+            blobName = backupFile.getName();
+        } else if (ogFile.isDirectory()) {
+            isTree = true;
+            // Process the directory as a tree
+            StringBuilder treeContent = new StringBuilder();
+    
+            // Iterate over the contents of the directory
+            for (File file : ogFile.listFiles()) {
+                if (file.isFile()) {
+                    // Create a blob for each file
+                    Blob blob = new Blob(file.getAbsolutePath(), compressionAuthorization);
+                    String blobName = blob.getBlobName();
+                    treeContent.append("blob ").append(blobName).append(" ").append(ogFile.getName() + "/" + file.getName()).append("\n");
+                } else if (file.isDirectory()) {
+                    // Recursively create a tree for each subdirectory
+                    Blob subTree = new Blob(file.getAbsolutePath(), compressionAuthorization);
+                    String treeName = subTree.getBlobName(); // Assume this returns the tree's SHA1
+                    treeContent.append("tree ").append(treeName).append(" ").append(file.getName()).append("\n");
+                }
+            }
+    
+            // Save the tree content to a file
+            String treeSHA1 = encryptThisString(treeContent.toString());
+            File treeFile = new File("git/objects", treeSHA1);
+            BufferedWriter treeWriter = new BufferedWriter(new FileWriter(treeFile));
+            treeWriter.write(treeContent.toString());
+            treeWriter.close();
+    
+            // Add the tree to the index
+            BufferedWriter indexWriter = new BufferedWriter(new FileWriter("git/index", true));
+            indexWriter.append(treeContent);
+            indexWriter.close();
+            
+            blobName = treeSHA1; // Use the tree's SHA1 as the blob name
+        } else {
+            throw new IOException("The specified path is neither a file nor a directory: " + fileName);
         }
-
-        //calling SHA1 on the file and putting that SHA1ed file into the objects directory
-       
-        File backupFile = new File ("git/objects", newFileName(fileContents));
-        BufferedWriter bw = new BufferedWriter(new FileWriter(backupFile));
-        bw.write (fileContents);
-        bw.close();
-
-        //storing original fileName and SHA1 of file into the index File
-        String str = "";
-
-        if (isBlob) {
-            str = "blob" + " " + backupFile.getName() + " " + ogFile.getAbsolutePath() + ogFile.getName() + "\n";
-        }
-        else {
-            str = "tree" + " " + backupFile.getName() + " " + ogFile.getAbsolutePath() + ogFile.getName() + "\n";
-        }
-        BufferedWriter bw2 = new BufferedWriter(new FileWriter("git/index", true));
-        bw2.append (str);
-        bw2.close();
-
-        blobName = backupFile.getName();
     }
+    
 
     public String getBlobName(){
         return blobName;
