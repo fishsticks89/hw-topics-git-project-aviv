@@ -10,7 +10,7 @@ public class DirectoryTester {
         Git.stageEverything();
         var git = new Git();
         var commit = git.commit("me", "test commit");
-        // git.checkout(commit);
+        git.checkout(commit);
     }
 
     // Helper method to create a file with specified content
