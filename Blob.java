@@ -206,6 +206,10 @@ public class Blob {
     public static void writeFileAsString(File file, String data) {
         try {
             Path path = file.toPath();
+            file.getParentFile().mkdirs();
+            if (!Files.exists(path))
+                Files.createFile(path);
+            
             Files.write(path, data.getBytes());
         } catch (IOException e) {
             System.err.println("Failed to write to file: " + file.getPath());
