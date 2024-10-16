@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.Date;
 
 import mickeybutil.Terminate;
+import mickeybutil.PathUtil;
 
 public class Git implements GitInterface {
     // Dear Aviv,
@@ -125,7 +126,7 @@ public class Git implements GitInterface {
         } else if (type.equals("blob")) {
             File blobFile = new File("git/objects/" + hash);
             String blobData = Blob.readFileAsString(blobFile);
-            File outFile = new File(path + "/" + name);
+            File outFile = new File(PathUtil.removeLeadingSlash(path + "/" + name));
             Blob.writeFileAsString(outFile, blobData);
         }
     }
