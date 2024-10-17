@@ -108,6 +108,13 @@ public class Git implements GitInterface {
         File outFile = new File(objects, commitHash);
         Blob.writeFileAsString(outFile, commit.toString());
         Head.setHeadCommit(commitHash);
+        var index = new File(git, "index");
+        index.delete();
+        try {
+            index.createNewFile();
+        } catch (IOException e) {
+            Terminate.exception(e);
+        }
         return commitHash;
     }
 
