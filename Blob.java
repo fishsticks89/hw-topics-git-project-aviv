@@ -206,7 +206,9 @@ public class Blob {
     public static void writeFileAsString(File file, String data) {
         try {
             Path path = file.toPath();
-            file.getParentFile().mkdirs();
+            var parent = file.getParentFile();
+            if (parent != null && !parent.exists())
+                parent.mkdirs();
             if (!Files.exists(path))
                 Files.createFile(path);
             
