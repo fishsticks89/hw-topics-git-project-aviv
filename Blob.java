@@ -73,6 +73,7 @@ public class Blob {
         else if (ogFile.isDirectory()) {
             isTree = true;
             StringBuilder treeContent = new StringBuilder();
+            StringBuilder indexContent = new StringBuilder();
 
             // Iterate over the contents of the directory
             for (File file : ogFile.listFiles()) {
@@ -85,6 +86,9 @@ public class Blob {
                     bw.close();
                     treeContent.append("blob ").append(createdHash).append(" ")
                             .append(file.getName())
+                            .append("\n");
+                    indexContent.append("blob ").append(createdHash).append(" ")
+                            .append(file.getPath())
                             .append("\n");
                 } else if (file.isDirectory()) {
                     // Recursively create a tree for each subdirectory
@@ -116,12 +120,7 @@ public class Blob {
             // Add the tree to the index
             try (BufferedWriter indexWriter = new BufferedWriter(new FileWriter("git/index", true))) {
                 // writes all the blobs in the tree to index
-                for (var line : treeContent.toString().split("\n")){
-                    if (line.length() < 4)
-                        continue;
-                    if (line.substring(0, 4).equals("blob"))
-                        indexWriter.append(line + "\n");
-                }
+                indexWriter.append(indexContent);
                 // adds the current tree to index
                 indexWriter.append("tree " + treeSHA1 + " " + fileName + "\n");
                 // all the other trees are written to index when `new Blob`ed
